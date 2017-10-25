@@ -1,0 +1,107 @@
+10) Which are the  job positions along with the number of petitions which have the success rate more than 70%  in petitions (total petitions filed 1000 OR more than 1000)?
+Technology Used: Map reduce.
+Sucessrate_job.java
+
+import java.io.IOException;
+import java.util.TreeMap;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+
+public class sucessrate_job {public static class MapClass extends Mapper<LongWritable,Text,Text,Text>
+{
+	public void map(LongWritable key,Text value,Context context) throws IOException, InterruptedException
+	{
+		try{
+		String[] str = value.toString().split("\t");
+         String job_title = str[4];
+         String case_status = str[1];
+        context.write(new Text(job_title),new Text(case_status));
+		}
+		catch(Exception e) {
+            System.out.println(e.getMessage());
+         }
+	}
+}
+	
+	  public static class ReduceClass extends Reducer<Text,Text,NullWritable,Text>
+	   {
+		    
+		  TreeMap<Double,String>topMap=new TreeMap<Double,String>();
+			public void reduce(Text key, Iterable<Text> values,Context context) throws IOException, InterruptedException {
+		    	
+		    	double total=0;
+		    	double sucessrate=0;
+		    	double petition=0;
+		    	//double rate=0;
+		    	int certified_withdrawn=0;
+		    	int certified=0;
+		    	//String finaloutput=null;
+		    	String mykey=key.toString();
+		    	for(Text v:values)
+		    	{
+		    	petition++;
+		    		String case_status=v.toString();
+		    		if(case_status.equals("CERTIFIED") )
+		    		{
+		    			certified++;
+		    		}
+		    		else if ( case_status.equals("CERTIFIED-WITHDRAWN")) 
+		    	{
+		    			certified_withdrawn++;
+				
+				}
+		    	}		
+		    	if(petition >=1000)
+		    	{
+		    	
+		    total= certified + certified_withdrawn;
+		    sucessrate=(total/petition)*100;
+		    
+		    	}
+		    if (sucessrate >70.00)
+		    {
+		    	String finaloutput=mykey+"\t"+petition+"\t"+sucessrate;
+		    	topMap.put(sucessrate,finaloutput);
+		    
+		    	}
+
+			}	 
+			
+public void cleanup(Context context) throws IOException, InterruptedException{
+	for(String val:topMap.descendingMap().values())
+	{
+		context.write(NullWritable.get(),new Text(val));
+	}
+} 
+	   }   
+   
+public static void main(String[] args) throws Exception, IOException {
+Configuration conf = new Configuration();
+//conf.set("name", "value")
+//conf.set("mapreduce.input.fileinputformat.split.minsize", "134217728");
+Job job = new Job (conf, "Count");
+job.setJarByClass(sucessrate_job.class);
+job.setMapperClass(MapClass.class);
+//job.setCombinerClass(ReduceClass.class);
+job.setReducerClass(ReduceClass.class);
+//job.setNumReduceTasks(2);
+job.setMapOutputKeyClass(Text.class);
+job.setMapOutputValueClass(Text.class);
+job.setOutputKeyClass(NullWritable.class);
+job.setOutputValueClass(Text.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+

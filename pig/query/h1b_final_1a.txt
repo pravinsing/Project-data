@@ -1,0 +1,16 @@
+1 a) Is the number of petitions with Data Engineer job title increasing over time?
+Technology Used: Pig.
+PigScript: h1b1a.pig
+
+data1 = LOAD '/user/hive/warehouse/h1b_final' USING PigStorage('\t') as (s_no:double,case_status:chararray,employer_name:chararray,soc_name:chararray,job_title:chararray,full_time_position:chararray,prevailing_wage:double,year:chararray,worksite:chararray,longitude,latitude);
+
+data2= foreach data1 generate s_no,year,job_title;
+job= filter data2 by job_title== 'DATA ENGINEER';
+total= group job by year;
+count= foreach total generate group as year,COUNT(job);
+final= order count by $0 asc;
+  dump final;
+STORE final INTO 'pig_out/output_1a' USING PigStorage();
+
+
+

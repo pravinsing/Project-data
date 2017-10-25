@@ -1,0 +1,38 @@
+2 a) Which part of the US has the most Data Engineer jobs for each year?
+Technology Used:Pig
+Pig Script: h1b_q2a.pig.
+
+data1 = LOAD '/user/hive/warehouse/h1b_final' USING PigStorage('\t') as (s_no:double,case_status:chararray,employer_name:chararray,soc_name:chararray,job_title:chararray,full_time_position:chararray,prevailing_wage:double,year:chararray,worksite:chararray,longitude,latitude);
+data2 = foreach data1 generate worksite,job_title,year; 
+job = filter data2 by job_title== 'DATA ENGINEER' AND year== '2011';
+job1 = filter data2 by job_title== 'DATA ENGINEER' AND year== '2012';
+job2= filter data2 by job_title== 'DATA ENGINEER' AND year== '2013';
+job3= filter data2 by job_title== 'DATA ENGINEER' AND year== '2014';
+job4= filter data2 by job_title== 'DATA ENGINEER' AND year== '2015';
+job5= filter data2 by job_title== 'DATA ENGINEER' AND year== '2016';
+
+total= group  job by (year,worksite);
+total1= group job1 by (year,worksite);
+total2= group job2 by (year,worksite);
+total3= group job3 by (year,worksite);
+total4= group job4 by (year,worksite);
+total5= group job5 by (year,worksite);
+
+count= foreach  total generate group as year,COUNT(job);
+count1= foreach total1 generate group as year,COUNT(job1);
+count2= foreach total2 generate group as year,COUNT(job2);
+count3= foreach total3 generate group as year,COUNT(job3);
+count4= foreach total4 generate group as year,COUNT(job4);
+count5= foreach total5 generate group as year,COUNT(job5);
+
+final=  limit(order  count by $1 desc) 1;
+final1= limit(order count1 by $1 desc) 1;
+final2= limit(order count2 by $1 desc) 1;
+final3= limit(order count3 by $1 desc) 1;
+final4= limit(order count4 by $1 desc) 1;
+final5= limit(order count5 by $1 desc) 1;
+final6= union final,final1,final2,final3,final4,final5;
+dump final6;
+STORE final INTO 'pig_out/output_2a' USING PigStorage();
+
+

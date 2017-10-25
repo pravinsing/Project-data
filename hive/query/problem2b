@@ -1,0 +1,10 @@
+
+2.b
+Q.find top 5 locations in the US who have got certified visa for each year.[certified]
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2011'group by year,worksite order by count desc limit 5;
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2012'group by year,worksite order by count desc limit 5;
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2013'group by year,worksite order by count desc limit 5;
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2014'group by year,worksite order by count desc limit 5;
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2015'group by year,worksite order by count desc limit 5;
+select worksite, year,count(worksite) as count from h1b_final where case_status =='CERTIFIED'  AND year =='2016'group by year,worksite order by count desc limit 5;
+

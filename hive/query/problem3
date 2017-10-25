@@ -1,0 +1,6 @@
+3.
+Q.Which industry(SOC_NAME) has the most number of Data Scientist positions?
+[certified]
+
+
+INSERT OVERWRITE DIRECTORY '/problem3' ROW FORMAT delimited fields terminated by ',' select soc_name, count(*) as final from h1b_final where job_title == 'DATA SCIENTIST' AND case_status == 'CERTIFIED' group by soc_name order by final desc limit 1;

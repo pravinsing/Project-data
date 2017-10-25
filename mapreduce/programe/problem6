@@ -1,0 +1,103 @@
+6) Find the percentage and the count of each case status on total applications for each year. Create a line graph depicting the pattern of All the cases over the period of time.
+Technology Used: Map 
+percentage_app.java
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class percentage_app {public static class MapClass extends Mapper<LongWritable,Text,Text,Text>
+{
+	public void map(LongWritable key,Text value,Context context) throws IOException, InterruptedException
+	{
+		try{
+		String[] str = value.toString().split("\t");
+         String year = str[7];
+         String case_status = str[1];
+        context.write(new Text(year),new Text(case_status));
+		}
+		catch(Exception e) {
+            System.out.println(e.getMessage());
+         }
+	}
+}
+	
+	  public static class ReduceClass extends Reducer<Text,Text,Text,Text>
+	   {
+		  
+		    
+		    public void reduce(Text key, Iterable<Text> values,Context context) throws IOException, InterruptedException {
+		 
+		    	double total=0;
+		    	
+		    	
+		    	double certified_withdrawn=0;
+		    	double certified=0;
+		    	double withdrawn=0;
+		    	double denied=0;
+		    	double certified_percent=0;
+		    	double certified_withdrawn_percent=0;
+		    	double withdrawn_percent=0;
+		    	double denied_percent=0;
+		    	for(Text v:values)
+		    	{
+		    	total++;
+		    		String case_status=v.toString();
+		    		if(case_status.equals("CERTIFIED") )
+		    		{
+		    			certified++;
+		    		}
+		    		else if ( case_status.equals("CERTIFIED-WITHDRAWN")) 
+		    	{
+		    			certified_withdrawn++;
+				
+				}
+		    			
+		    		else if(case_status.equals("WITHDRAWN"))
+		    	{
+		    	
+		    withdrawn++;
+		    	}
+		    		else 
+		    {
+		    	denied++;
+		  }
+		    	}
+      certified_percent=((certified*100)/(total));
+      certified_withdrawn_percent=((certified_withdrawn*100)/(total));
+      withdrawn_percent=((withdrawn*100)/(total));
+      denied_percent=((denied*100)/(total));
+	 String output=total+"\t"+certified+"\t"+certified_percent+"\t"+certified_withdrawn+"\t"+certified_withdrawn_percent+"\t"+withdrawn+"\t"+withdrawn_percent+"\t"+denied+"\t"+denied_percent;
+		    	context.write(new Text(key),new Text(output));
+		    	}
+		    	
+		    }
+	   
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+//conf.set("name", "value")
+//conf.set("mapreduce.input.fileinputformat.split.minsize", "134217728");
+Job job = new Job (conf, "Count");
+job.setJarByClass(percentage_app.class);
+job.setMapperClass(MapClass.class);
+//job.setCombinerClass(ReduceClass.class);
+job.setReducerClass(ReduceClass.class);
+//job.setNumReduceTasks(2);
+job.setMapOutputKeyClass(Text.class);
+job.setMapOutputValueClass(Text.class);
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(Text.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+
